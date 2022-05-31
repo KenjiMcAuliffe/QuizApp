@@ -1,23 +1,127 @@
-import logo from './logo.svg';
+import { useEffect, useState, useTransition } from 'react';
 import './App.css';
 
 function App() {
+  const questions = [
+  {
+    question: "What is the capital city of France?",
+    correctAnswer: "Paris",
+    wrongAnswers: [
+      "Berlin",
+      "London",
+      "Madrid"
+    ]
+  },
+  {
+    question: "What continent is Uruguary in?",
+    correctAnswer: "South America",
+    wrongAnswers: [
+      "Asia",
+      "Europe",
+      "North America"
+    ]
+  },
+  {
+    question: "What is the largest country on Earth?",
+    correctAnswer: "Russia",
+    wrongAnswers: [
+      "Canada",
+      "The United States of America",
+      "Brazil"
+    ]
+  }];
+
+  const [questionIndex, setQuestionIndex] = useState(0);
+  var currentQuestionIndex = 0;
+
+  const [questionSubmitted, setQuestionSubmitted] = useState(false);
+  var isQuestionSubmitted = false;
+
+  const [finished, setFinished] = useState(false);
+
+  const [correctAnswers, setCorrectAnswers] = useState(0);
+
+  const handleAnswerPressed = (event) => {
+    if(isQuestionSubmitted === false) {
+      const question = questions[currentQuestionIndex];
+      if(event.target.innerHTML === question.correctAnswer) {
+        //CORRECT ANSWER PRESSED
+        setCorrectAnswers(prev => prev + 1)
+        event.target.style.backgroundColor = "green";
+      }
+      else {
+        //WRONG ANSWER PRESSED
+        event.target.style.backgroundColor = "red";
+        event.target.parentNode.childNodes.forEach((node) => {
+          if(node.innerHTML === question.correctAnswer) {
+            node.style.backgroundColor = "green";
+          }
+        });
+      }
+    }
+
+    setQuestionSubmitted(true);
+    isQuestionSubmitted = true;
+  };
+
+  const generateAnswerElements = (correctAnswer, wrongAnswers) => {
+    const rightElement = <li key = {correctAnswer} onClick={handleAnswerPressed} className="Button">{correctAnswer}</li>;
+    const wrongElements = wrongAnswers.map((ans) => (<li key={ans} onClick={handleAnswerPressed} className="Button">{ans}</li>))
+    const allElements = []
+    wrongElements.forEach(element => {
+      allElements.splice(Math.floor(Math.random() * (allElements.length + 1)), 0, element);
+    });
+    allElements.splice(Math.floor(Math.random() * (allElements.length + 1)), 0, rightElement)
+
+    return (
+      <ul>
+        {allElements}
+      </ul>
+    )
+  };
+
+  const [answerElements, setAnswerElements] = useState(() => generateAnswerElements(questions[currentQuestionIndex].correctAnswer, questions[currentQuestionIndex].wrongAnswers));
+
+  const nextQuestion = () => {
+    if(questionIndex < questions.length - 1) {
+      console.log(questionIndex.toString());
+      setQuestionSubmitted(false);
+      setQuestionIndex(prevIndex => prevIndex + 1);
+      currentQuestionIndex = questionIndex + 1;
+      setAnswerElements(generateAnswerElements(questions[currentQuestionIndex].correctAnswer, questions[currentQuestionIndex].wrongAnswers));
+    }
+    else {
+      setFinished(true);
+    }
+  }
+
+  const resetQuiz = () => {
+    setCorrectAnswers(0);
+    setFinished(false);
+    setQuestionIndex(0);
+    currentQuestionIndex = 0;
+    setAnswerElements(generateAnswerElements(questions[currentQuestionIndex].correctAnswer, questions[currentQuestionIndex].wrongAnswers));
+    setQuestionSubmitted(false);
+    isQuestionSubmitted = false;
+  }
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      {!finished ?
+      <div className="QuizFrame">
+        <h1>Question {questionIndex + 1}</h1>
+        <h2>{questions[questionIndex].question}</h2>
+        {answerElements}
+        {questionSubmitted ? <p onClick={nextQuestion} className="NextQuestion">Next Question</p> : null}
+      </div> 
+      :
+      <div className="QuizFrame">
+        <h1>All questions completed!</h1>
+        <h2>You scored {correctAnswers}/{questions.length} ({(correctAnswers / questions.length * 100).toFixed(1)}%)</h2>
+        <li onClick={resetQuiz} className="Button">Try Again?</li>
+      </div>
+      }
+
     </div>
   );
 }
