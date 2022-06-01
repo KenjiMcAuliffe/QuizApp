@@ -32,18 +32,21 @@ function App() {
   }];
 
   const [questionIndex, setQuestionIndex] = useState(0);
-  var currentQuestionIndex = 0;
 
   const [questionSubmitted, setQuestionSubmitted] = useState(false);
-  var isQuestionSubmitted = false;
 
   const [finished, setFinished] = useState(false);
 
   const [correctAnswers, setCorrectAnswers] = useState(0);
 
+  /*useEffect(() => {
+    console.log("Called");
+  }, []);
+  */
+
   const handleAnswerPressed = (event) => {
-    if(isQuestionSubmitted === false) {
-      const question = questions[currentQuestionIndex];
+    if(questionSubmitted === false) {
+      const question = questions[questionIndex];
       if(event.target.innerHTML === question.correctAnswer) {
         //CORRECT ANSWER PRESSED
         setCorrectAnswers(prev => prev + 1)
@@ -61,7 +64,6 @@ function App() {
     }
 
     setQuestionSubmitted(true);
-    isQuestionSubmitted = true;
   };
 
   const generateAnswerElements = (correctAnswer, wrongAnswers) => {
@@ -80,29 +82,28 @@ function App() {
     )
   };
 
-  const [answerElements, setAnswerElements] = useState(() => generateAnswerElements(questions[currentQuestionIndex].correctAnswer, questions[currentQuestionIndex].wrongAnswers));
+  const [answerElements, setAnswerElements] = useState(() => generateAnswerElements(questions[questionIndex].correctAnswer, questions[questionIndex].wrongAnswers));
 
   const nextQuestion = () => {
     if(questionIndex < questions.length - 1) {
-      console.log(questionIndex.toString());
       setQuestionSubmitted(false);
       setQuestionIndex(prevIndex => prevIndex + 1);
-      currentQuestionIndex = questionIndex + 1;
-      setAnswerElements(generateAnswerElements(questions[currentQuestionIndex].correctAnswer, questions[currentQuestionIndex].wrongAnswers));
     }
     else {
       setFinished(true);
     }
   }
 
+  useEffect(() => {
+    setAnswerElements(generateAnswerElements(questions[questionIndex].correctAnswer, questions[questionIndex].wrongAnswers));
+  }, [questionIndex]);
+
   const resetQuiz = () => {
     setCorrectAnswers(0);
     setFinished(false);
     setQuestionIndex(0);
-    currentQuestionIndex = 0;
-    setAnswerElements(generateAnswerElements(questions[currentQuestionIndex].correctAnswer, questions[currentQuestionIndex].wrongAnswers));
+    setAnswerElements(generateAnswerElements(questions[questionIndex].correctAnswer, questions[questionIndex].wrongAnswers));
     setQuestionSubmitted(false);
-    isQuestionSubmitted = false;
   }
 
   return (
